@@ -125,10 +125,10 @@ void capture_image(int fd, fd_set fds,struct buffer *buffers , struct v4l2_buffe
 
 void capture_image_sequence(int fd, fd_set fds, struct buffer *buffers ,struct v4l2_buffer buf)
 {
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 16; i++)
         {
                 set_analog_gain(fd, i);
-                usleep(200000); //sleep 200ms
+                usleep(1000000); //sleep 1
                 capture_image(fd, fds, buffers, buf, i);
         }
 }

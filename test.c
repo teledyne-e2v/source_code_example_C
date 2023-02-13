@@ -80,8 +80,10 @@ void set_analog_gain(int fd, int64_t value)
 
 
 
-void capture_image(int i)
+void capture_image(int fd, fd_set fds,struct buffer *buffers , struct v4l2_buffer buf, int i)
 {
+	FILE *fout;
+	char out_name[256];
         int r;
         struct timeval tv;
         do
@@ -121,13 +123,13 @@ void capture_image(int i)
 }
 
 
-void capture_image_sequence(int fd, fd_set fds, v4l2_buffer buf)
+void capture_image_sequence(int fd, fd_set fds, struct buffer *buffers ,struct v4l2_buffer buf)
 {
-        for (i = 0; i < 10; i++)
+        for (int i = 0; i < 10; i++)
         {
                 set_analog_gain(fd, i);
-                sleep(0.5);
-                capture_image(i);
+                usleep(200000); //sleep 200ms
+                capture_image(fd, fds, buffers, buf, i);
         }
 }
 
@@ -140,10 +142,10 @@ int main(int argc, char **argv)
         fd_set fds;
         
         int fd = -1;
-        unsigned int i, n_buffers;
+        unsigned int n_buffers;
         char *dev_name = "/dev/video0";
-        char out_name[256];
-        FILE *fout;
+        
+        
         struct buffer *buffers;
 
         fd = open(dev_name, O_RDWR | O_NONBLOCK, 0);
@@ -202,7 +204,7 @@ int main(int argc, char **argv)
                 }
         }
 
-        for (i = 0; i < n_buffers; ++i)
+        for (int i = 0; i < n_buffers; ++i)
         {
                 CLEAR(buf);
                 buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -211,14 +213,14 @@ int main(int argc, char **argv)
                 xioctl(fd, VIDIOC_QBUF, &buf);
         }
         type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        setExpTime(fd, 200000);
+
         xioctl(fd, VIDIOC_STREAMON, &type);
 
-        capture_image_sequence(fd)
+        capture_image_sequence(fd, fds, buffers, buf);
 
             type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         xioctl(fd, VIDIOC_STREAMOFF, &type);
-        for (i = 0; i < n_buffers; ++i)
+        for (int i = 0; i < n_buffers; ++i)
                 munmap(buffers[i].start, buffers[i].length);
         close(fd);
 

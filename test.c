@@ -49,13 +49,13 @@ static void xioctl(int fh, int request, void *arg)
         }
 }
 
-int64_t get_analog_gain(int fd)
+int64_t get_control(int fd, int64_t code)
 {
-        struct v4l2_ext_controls ecs;
+	struct v4l2_ext_controls ecs;
         struct v4l2_ext_control ec;
         memset(&ecs, 0, sizeof(ecs));
         memset(&ec, 0, sizeof(ec));
-        ec.id = 0x009a206f;
+        ec.id = code; // this code can be obtain using the command v4l2-ctl -l
         ecs.controls = &ec;
         ecs.count = 1;
         ecs.ctrl_class = V4L2_CTRL_CLASS_CAMERA;
@@ -63,13 +63,13 @@ int64_t get_analog_gain(int fd)
         return ec.value64;
 }
 
-void set_analog_gain(int fd, int64_t value)
+void set_control(int fd, int64_t code, int64_t value)
 {
         struct v4l2_ext_controls ecs;
         struct v4l2_ext_control ec;
         memset(&ecs, 0, sizeof(ecs));
         memset(&ec, 0, sizeof(ec));
-        ec.id = 0x009a206f;
+        ec.id = code; // this code can be obtain using the command v4l2-ctl -l
         ecs.controls = &ec;
         ecs.count = 1;
         ecs.ctrl_class = V4L2_CTRL_CLASS_CAMERA;
@@ -78,7 +78,85 @@ void set_analog_gain(int fd, int64_t value)
         xioctl(fd, VIDIOC_S_EXT_CTRLS, &ecs);
 }
 
+int64_t get_analog_gain(int fd)
+{
+        return get_control(fd,0x009a206f);
+}
 
+void set_analog_gain(int fd, int64_t value)
+{
+	set_control(fd,0x009a206f,value);
+}
+
+int64_t get_exposure(int fd)
+{
+        return get_control(fd,0x009a200a);
+}
+
+void set_exposure(int fd, int64_t value)
+{
+        set_control(fd,0x009a200a,value);
+}
+
+int64_t get_sensor_mode(int fd)
+{
+        return get_control(fd,0x009a2008);
+}
+
+void set_sensor_mode(int fd, int64_t value)
+{
+	set_control(fd,0x009a2008,value);
+}
+
+int64_t get_frame_rate(int fd)
+{
+        return get_control(fd,0x009a200b);
+}
+
+void set_frame_rate(int fd, int64_t value)
+{
+	set_control(fd,0x009a200b,value);
+}
+
+int64_t get_digital_gain(int fd)
+{
+        return get_control(fd,0x009a2070);
+}
+
+void set_digital_gain(int fd, int64_t value)
+{
+	set_control(fd,0x009a2070,value);
+}
+
+int64_t get_test_pattern(int fd)
+{
+        return get_control(fd,0x009a2071);
+}
+
+void set_test_pattern(int fd, int64_t value)
+{
+	set_control(fd,0x009a2071,value);
+}
+
+int64_t get_flip(int fd)
+{
+        return get_control(fd,0x009a2072);
+}
+
+void set_flip(int fd, int64_t value)
+{
+	set_control(fd,0x009a2072,value);
+}
+
+int64_t get_gain(int fd)
+{
+        return get_control(fd,0x009a2009);
+}
+
+void set_gain(int fd, int64_t value)
+{
+	set_control(fd,0x009a2009,value);
+}
 
 void capture_image(int fd, fd_set fds,struct buffer *buffers , struct v4l2_buffer buf, int i)
 {

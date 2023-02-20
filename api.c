@@ -1,4 +1,4 @@
-#include <stdio.h>
+
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
@@ -16,6 +16,10 @@
 
 #include "api.h"
 
+struct Control_List control_list;
+
+FILE * ctrls;
+int fd=-1;
 
 static void xioctl(int fh, int request, void *arg)
 {
@@ -82,6 +86,10 @@ void set_control(char* name, int value)
         xioctl(fd, VIDIOC_S_EXT_CTRLS, &ecs);
 }
 
+struct Control_List get_control_list()
+{
+	return control_list;
+}
 
 int get_control_by_code(int code)
 {
@@ -112,17 +120,18 @@ void set_control_by_code(int code, int value)
         xioctl(fd, VIDIOC_S_EXT_CTRLS, &ecs);
 }
 
-void print_control_list(struct Control_List* control_list) {
-    printf("Number of controls: %d\n", control_list->number_of_controls);
-    for (int i = 0; i < control_list->number_of_controls; i++) {
+void print_control_list() 
+{
+    printf("Number of controls: %d\n", control_list.number_of_controls);
+    for (int i = 0; i < control_list.number_of_controls; i++) {
         printf("Control %d:\n", i+1);
-        printf("\tName: %s\n", control_list->controls[i].name);
-        printf("\tID: %x\n", control_list->controls[i].id);
-        printf("\tType: %s\n", control_list->controls[i].type);
-        printf("\tMinimum: %d\n", control_list->controls[i].minimum);
-        printf("\tMaximum: %d\n", control_list->controls[i].maximum);
-        printf("\tStep: %d\n", control_list->controls[i].step);
-        printf("\tDefault value: %d\n", control_list->controls[i].default_value);
+        printf("\tName: %s\n", control_list.controls[i].name);
+        printf("\tID: %x\n", control_list.controls[i].id);
+        printf("\tType: %s\n", control_list.controls[i].type);
+        printf("\tMinimum: %d\n", control_list.controls[i].minimum);
+        printf("\tMaximum: %d\n", control_list.controls[i].maximum);
+        printf("\tStep: %d\n", control_list.controls[i].step);
+        printf("\tDefault value: %d\n", control_list.controls[i].default_value);
     }
 }
 
@@ -133,15 +142,14 @@ void close_driver_access()
 
 
 
-void initialization(int argc, char **argv)
+void initialization(char *v4l2_device, int sensor_mode)
 {
 
         unsigned int n_buffers;
-        char *dev_name = "/dev/video0";
         
         struct buffer *buffers;
        
-        fd = open(dev_name, O_RDWR | O_NONBLOCK, 0);
+        fd = open(v4l2_device, O_RDWR | O_NONBLOCK, 0);
 
         ctrls = fopen("/tmp/ctrls_list.txt", "r"); // open this file
     
@@ -207,10 +215,44 @@ void initialization(int argc, char **argv)
         }
     }
 	control_list.number_of_controls=j;
-	print_control_list(&control_list);
-	set_control("exposure",  200);
-void close_driver_access();
+
+	struct v4l2_format fmt;
+	memset(&fmt, 0, sizeof(fmt));
+	fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	fmt.fmt.pix.field = V4L2_FIELD_NONE;
+
+	if (sensor_mode == 2) {
+	    fmt.fmt.pix.width = 1920;
+	    fmt.fmt.pix.height = 1080;
+	    fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_GREY;
+	    set_control("sensor_mode", 2);
+	}
+	else if (sensor_mode == 0) {
+	    fmt.fmt.pix.width = 1920;
+	    fmt.fmt.pix.height = 1080;
+	    fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_Y10;
+	    set_control("sensor_mode", 0);
+	}
+	else if (sensor_mode == 1) {
+	    fmt.fmt.pix.width = 1920;
+	    fmt.fmt.pix.height = 800;
+	    fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_Y10;
+	    set_control("sensor_mode", 1);
+	}
+	else if (sensor_mode == 3) {
+	    fmt.fmt.pix.width = 1920;
+	    fmt.fmt.pix.height = 80;
+	    fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_GREY;
+	    set_control("sensor_mode", 3);
+	}
+	else{
+	printf("sensor mode not supported\n");
+	exit(0);	
+	}
+
+ioctl(fd, VIDIOC_S_FMT, &fmt);
 }
+
 
 
 

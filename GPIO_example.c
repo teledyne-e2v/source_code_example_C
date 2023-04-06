@@ -81,7 +81,7 @@ int main()
 {
 	char high[2] = "1";
 	char low[2] = "0";
-	char pin[4]="79";
+	char pin[4]="64";
 
 	char value[128]; // the value file is where we have to change the GPIO value (write 1 will outpout GPIO tension of 3.3V 0 will output tension of 0V)
 	strcpy(value,gpio_path);

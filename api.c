@@ -34,7 +34,7 @@ static void xioctl(int fh, int request, void *arg)
     }
 }
 
-int get_control(char *name)
+int get_control(char *name) // Allows to retrieve the whole value of a control from its name.
 {
     int i = 0;
     while (strcmp(name, control_list.controls[i].name) != 0)
@@ -58,7 +58,7 @@ int get_control(char *name)
     return ec.value64;
 }
 
-void set_control(char *name, int value)
+void set_control(char *name, int value) // Allows to assign a value to a control from its name.
 {
     int i = 0;
     while (strcmp(name, control_list.controls[i].name) != 0)
@@ -88,7 +88,7 @@ struct Control_List *get_control_list()
     return &control_list;
 }
 
-int get_control_by_code(int code)
+int get_control_by_code(int code) // Allows to get the whole value of a control from its id.
 {
     struct v4l2_ext_controls ecs;
     struct v4l2_ext_control ec;
@@ -102,7 +102,7 @@ int get_control_by_code(int code)
     return ec.value64;
 }
 
-void set_control_by_code(int code, int value)
+void set_control_by_code(int code, int value) // Allows to assign a value to a control from its id.
 {
     struct v4l2_ext_controls ecs;
     struct v4l2_ext_control ec;
@@ -117,7 +117,7 @@ void set_control_by_code(int code, int value)
     xioctl(fd, VIDIOC_S_EXT_CTRLS, &ecs);
 }
 
-void print_control_list()
+void print_control_list() // allows to print the list of available controls
 {
     printf("Number of controls: %d\n", control_list.number_of_controls);
     for (int i = 0; i < control_list.number_of_controls; i++)
@@ -133,12 +133,12 @@ void print_control_list()
     }
 }
 
-void close_driver_access()
+void close_driver_access() // closes the access to the driver, must be used last, no other function must be called after this one (except if you want to do an initialization again)
 {
     fclose(ctrls);
 }
 
-void initialization(char *v4l2_device, int sensor_mode)
+void initialization(char *v4l2_device, int sensor_mode) // allows to start the driver with a configurable sensor mode. (Initialization is necessary before using any other function)
 {
     fd = open(v4l2_device, O_RDWR | O_NONBLOCK, 0);
     system("v4l2-ctl -l > /tmp/ctrls_list.txt");

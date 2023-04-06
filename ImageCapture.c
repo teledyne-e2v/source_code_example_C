@@ -33,7 +33,7 @@ struct buffer
         size_t length;
 };
 
-static void xioctl(int fh, int request, void *arg)
+static void xioctl(int fh, int request, void *arg) // ioctl checking errors and trying while not working 
 {
         int r;
 
@@ -49,7 +49,7 @@ static void xioctl(int fh, int request, void *arg)
         }
 }
 
-int64_t get_control(int fd, int64_t code)
+int64_t get_control(int fd, int64_t code) // set control by code
 {
 	struct v4l2_ext_controls ecs;
         struct v4l2_ext_control ec;
@@ -63,7 +63,7 @@ int64_t get_control(int fd, int64_t code)
         return ec.value64;
 }
 
-void set_control(int fd, int64_t code, int64_t value)
+void set_control(int fd, int64_t code, int64_t value) // set control by code
 {
         struct v4l2_ext_controls ecs;
         struct v4l2_ext_control ec;
@@ -77,6 +77,10 @@ void set_control(int fd, int64_t code, int64_t value)
         ec.size = 0;
         xioctl(fd, VIDIOC_S_EXT_CTRLS, &ecs);
 }
+
+
+
+// static definition of all controls.
 
 int64_t get_analog_gain(int fd)
 {
@@ -158,6 +162,10 @@ void set_gain(int fd, int64_t value)
 	set_control(fd,0x009a2009,value);
 }
 
+
+
+
+
 void capture_image(int fd, fd_set fds,struct buffer *buffers , struct v4l2_buffer buf, int i)
 {
 	FILE *fout;
@@ -173,17 +181,17 @@ void capture_image(int fd, fd_set fds,struct buffer *buffers , struct v4l2_buffe
                         tv.tv_usec = 0;
 
                         r = select(fd + 1, &fds, NULL, NULL, &tv);
-                } while ((r == -1 && (errno = EINTR)));
+                } while ((r == -1 && (errno = EINTR))); //check fd
                 if (r == -1)
                 {
                         perror("select");
                         return errno;
                 }
 
-                CLEAR(buf);
+                CLEAR(buf); // clear the buffer
                 buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
                 buf.memory = V4L2_MEMORY_MMAP;
-                xioctl(fd, VIDIOC_DQBUF, &buf);
+                xioctl(fd, VIDIOC_DQBUF, &buf); // get the image from Queue WARNING : the queue is filled by 3 images, if you control the sesnor it may be shown after this 3 images, you can remove from Queue with a simple  loop if you want
 
                 sprintf(out_name, "out%03d.raw", i);
                 fout = fopen(out_name, "w");
@@ -192,21 +200,19 @@ void capture_image(int fd, fd_set fds,struct buffer *buffers , struct v4l2_buffe
                         perror("Cannot open image");
                         exit(EXIT_FAILURE);
                 }
-                /*fprintf(fout, "P6\\n%d %d 255\\n",
-                        fmt.fmt.pix.width, fmt.fmt.pix.height);*/
-                fwrite(buffers[buf.index].start, buf.bytesused, 1, fout);
+                fwrite(buffers[buf.index].start, buf.bytesused, 1, fout); // write raw image
                 fclose(fout);
 
                 xioctl(fd, VIDIOC_QBUF, &buf);
 }
 
 
-void capture_image_sequence(int fd, fd_set fds, struct buffer *buffers ,struct v4l2_buffer buf)
+void capture_image_sequence(int fd, fd_set fds, struct buffer *buffers ,struct v4l2_buffer buf) // capture a sequence of image 
 {
         for (int i = 0; i < 16; i++)
         {
                 set_analog_gain(fd, i);
-                usleep(1000000); //sleep 1
+                usleep(1000000); //sleep 1s
                 capture_image(fd, fds, buffers, buf, i);
         }
 }
@@ -252,7 +258,7 @@ int main(int argc, char **argv)
                 printf("Warning: driver is sending image at %dx%d\\n",
                        fmt.fmt.pix.width, fmt.fmt.pix.height);
 
-
+        //initialize request buffer
         CLEAR(req);
         req.count = 2;
         req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -260,7 +266,8 @@ int main(int argc, char **argv)
         xioctl(fd, VIDIOC_REQBUFS, &req);
 
         buffers = calloc(req.count, sizeof(*buffers));
-        for (n_buffers = 0; n_buffers < req.count; ++n_buffers)
+
+        for (n_buffers = 0; n_buffers < req.count; ++n_buffers) // initialize buffers
         {
                 CLEAR(buf);
 
@@ -282,6 +289,9 @@ int main(int argc, char **argv)
                 }
         }
 
+
+
+        // put the buffers in queue
         for (int i = 0; i < n_buffers; ++i)
         {
                 CLEAR(buf);
@@ -290,17 +300,22 @@ int main(int argc, char **argv)
                 buf.index = i;
                 xioctl(fd, VIDIOC_QBUF, &buf);
         }
-        type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
+
+
+        type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        // Start stream (fill the buffers) now you can control the sensor (may require a bit of time to apply the first control)
         xioctl(fd, VIDIOC_STREAMON, &type);
 
         capture_image_sequence(fd, fds, buffers, buf);
 
+
+        
             type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        xioctl(fd, VIDIOC_STREAMOFF, &type);
-        for (int i = 0; i < n_buffers; ++i)
+        xioctl(fd, VIDIOC_STREAMOFF, &type); // stream off 
+        for (int i = 0; i < n_buffers; ++i) // free buffers
                 munmap(buffers[i].start, buffers[i].length);
-        close(fd);
+        close(fd); // closing device.
 
         return 0;
 }

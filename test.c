@@ -238,12 +238,12 @@ int main(int argc, char **argv)
         fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         fmt.fmt.pix.width = 1920;
         fmt.fmt.pix.height = 1080;
-        fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_GREY;
+        fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_Y10;
         fmt.fmt.pix.field = V4L2_FIELD_NONE;
 
         //apply format
         xioctl(fd, VIDIOC_S_FMT, &fmt);
-        if (fmt.fmt.pix.pixelformat != V4L2_PIX_FMT_GREY)
+        if (fmt.fmt.pix.pixelformat != V4L2_PIX_FMT_Y10)
         {
                 printf("Libv4l didn't accept GREY format. Can't proceed.\\n");
                 exit(EXIT_FAILURE);

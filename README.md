@@ -53,6 +53,6 @@ sensor mode = 2 -> GRAY8  in 1920x1080
 
 sensor mode = 3 -> GRAY8  in 1920x800
 
-Note:  
-- all images are saved in little-endian
+Notes:  
+- All images are saved in little-endian
 - Y10 images will be saved in 16bit raw images

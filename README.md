@@ -1,3 +1,5 @@
+# Version 1.0
+
 #### The purpose of this code is to provide a simple example of using the V4L2 driver of the Topaz module in C.
 
 # Compilation 

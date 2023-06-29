@@ -24,8 +24,11 @@ cd executables
 # Image Capture
 
 ImageCapture.c provides an example of taking a sequence of images by changing some sensor parameters between each image. In this file you can also find functions to drive the sensor which are different from the api (less complex, address of the controls defined in static).
+
 You can compile the program to take a sequence of RAW images and customize the controls applied to each image as you wish.
-It is also possible to change the format to take picture in Y10 or GRAY8. Y10 images will be saved in 16bit GRAY raw image.
+
+It is also possible to take picture in different formats and resolution with the sensor mode. Take a look at Usage (just bellow) for more informations.
+
 
 ## Usage 
 
@@ -49,3 +52,5 @@ sensor mode = 1 -> Y10  in 1920x800
 sensor mode = 2 -> GRAY8  in 1920x1080
 
 sensor mode = 3 -> GRAY8  in 1920x800
+
+Note: Y10 images will be saved in 16bit raw images

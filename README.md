@@ -2,6 +2,20 @@
 
 #### The purpose of this code is to provide a simple example of using the V4L2 driver of the Topaz module in C.
 
+# Requirements 
+
+Meson tool has to be installed:
+
+```
+sudo apt install meson
+```
+
+Also following libraries are required:
+
+```
+sudo apt install v4l-utils libv4l-dev
+```
+
 # Compilation 
 
 ```
